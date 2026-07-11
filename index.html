@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LankaTaxMate — Sri Lanka SME Tax Assistant</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273549;
+    --accent: #34d399;
+    --accent2: #fbbf24;
+    --danger: #f87171;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, #065f46, #047857);
+    padding: 24px 20px;
+    text-align: center;
+  }
+  header h1 { font-size: 1.6rem; letter-spacing: 0.5px; }
+  header h1 span { color: var(--accent2); }
+  header p { color: #d1fae5; font-size: 0.9rem; margin-top: 4px; }
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    background: var(--card);
+    padding: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+  }
+  nav button {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  nav button.active, nav button:hover {
+    background: var(--card2);
+    color: var(--accent);
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 20px; }
+  .tab { display: none; animation: fadeIn 0.3s; }
+  .tab.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1.15rem; margin-bottom: 12px; color: var(--accent); }
+  .card h3 { font-size: 1rem; margin: 14px 0 8px; }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin: 10px 0 4px; }
+  input, select {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .btn {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #052e22;
+    font-weight: 700;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .result {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--card2);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    display: none;
+  }
+  .result.show { display: block; }
+  .result .big { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+  .result table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 0.85rem; }
+  .result td { padding: 5px 4px; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .result td:last-child { text-align: right; color: var(--text); }
+  .deadline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 14px;
+    background: var(--card2);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .deadline .name { font-weight: 600; }
+  .deadline .desc { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .pill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pill.soon { background: #7f1d1d; color: #fecaca; }
+  .pill.upcoming { background: #78350f; color: #fde68a; }
+  .pill.later { background: #064e3b; color: #a7f3d0; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat .num { font-size: 1.6rem; font-weight: 800; color: var(--accent2); }
+  .stat .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .note { font-size: 0.75rem; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 0.78rem; line-height: 1.6; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🇱🇰 Lanka<span>Tax</span>Mate</h1>
+  <p>Tax deadlines & calculators for Sri Lankan small businesses — FY 2025/26</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard', this)">📊 Dashboard</button>
+  <button onclick="showTab('calendar', this)">📅 Tax Calendar</button>
+  <button onclick="showTab('vat', this)">🧾 VAT Calculator</button>
+  <button onclick="showTab('income', this)">💰 Income Tax</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="tab active">
+    <div class="stats">
+      <div class="stat"><div class="num" id="statDays">–</div><div class="lbl">Days to next deadline</div></div>
+      <div class="stat"><div class="num" id="statNext" style="font-size:1rem; padding-top:8px;">–</div><div class="lbl">Next deadline</div></div>
+      <div class="stat"><div class="num">18%</div><div class="lbl">Current VAT rate</div></div>
+    </div>
+    <div class="card">
+      <h2>⚠️ Due within 30 days</h2>
+      <div id="urgentList"></div>
+    </div>
+    <div class="card">
+      <h2>Quick tax facts — FY 2025/26</h2>
+      <div class="note" style="font-size:0.88rem; margin-top:0;">
+        • Personal income tax relief: <b style="color:var(--text)">Rs. 1,800,000/year</b> (Rs. 150,000/month tax-free)<br>
+        • Personal tax bands: 6% → 18% → 24% → 30% → 36%<br>
+        • VAT: <b style="color:var(--text)">18%</b><br>
+        • Standard corporate income tax: 30%<br>
+        • EPF: employer 12% + employee 8% &nbsp;|&nbsp; ETF: employer 3%
+      </div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section id="calendar" class="tab">
+    <div class="card">
+      <h2>📅 Recurring monthly deadlines</h2>
+      <div id="monthlyList"></div>
+      <h3>Annual / quarterly deadlines</h3>
+      <div id="annualList"></div>
+      <p class="note">Dates follow standard IRD schedules. If a date falls on a holiday, the deadline usually moves to the next working day. Always confirm on <b>ird.gov.lk</b>.</p>
+    </div>
+  </section>
+
+  <!-- VAT -->
+  <section id="vat" class="tab">
+    <div class="card">
+      <h2>🧾 VAT Calculator (18%)</h2>
+      <label>Calculation type</label>
+      <select id="vatMode">
+        <option value="add">Add VAT to a price (price is VAT-exclusive)</option>
+        <option value="extract">Extract VAT from a price (price includes VAT)</option>
+        <option value="net">Monthly VAT payable (output − input)</option>
+      </select>
+      <div id="vatSimple">
+        <label>Amount (Rs.)</label>
+        <input type="number" id="vatAmount" placeholder="e.g. 100000" min="0">
+      </div>
+      <div id="vatNet" style="display:none;">
+        <div class="row">
+          <div>
+            <label>Total sales for the month (Rs., excl. VAT)</label>
+            <input type="number" id="vatSales" placeholder="e.g. 2000000" min="0">
+          </div>
+          <div>
+            <label>Total purchases (Rs., excl. VAT, VAT-invoiced)</label>
+            <input type="number" id="vatPurchases" placeholder="e.g. 1200000" min="0">
+          </div>
+        </div>
+      </div>
+      <button class="btn" onclick="calcVAT()">Calculate</button>
+      <div class="result" id="vatResult"></div>
+      <p class="note">VAT rate is 18% (from 1 Jan 2024). VAT payment is due by the 20th of the following month; the return is due by the end of the following month.</p>
+    </div>
+  </section>
+
+  <!-- INCOME TAX -->
+  <section id="income" class="tab">
+    <div class="card">
+      <h2>💰 Personal Income Tax Estimator — FY 2025/26</h2>
+      <label>Your total annual income / business profit (Rs.)</label>
+      <input type="number" id="incAnnual" placeholder="e.g. 3600000" min="0">
+      <label>Or monthly income (Rs.) — fills annual automatically</label>
+      <input type="number" id="incMonthly" placeholder="e.g. 300000" min="0" oninput="syncMonthly()">
+      <button class="btn" onclick="calcIncome()">Estimate my tax</button>
+      <div class="result" id="incResult"></div>
+      <p class="note">Uses FY 2025/26 rates (from 1 Apr 2025): first Rs. 1.8M relief at 0%, next Rs. 1M at 6%, then Rs. 500,000 bands at 18%, 24%, 30%, and 36% on the balance. This is an estimate for individuals/sole proprietors — deductions and reliefs may change your final figure. Consult a tax advisor for filing.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  LankaTaxMate v1.0 — built for Sri Lankan small businesses.<br>
+  This tool gives estimates only and is not professional tax advice. Verify with <b>ird.gov.lk</b> or a qualified accountant.
+</footer>
+
+<script>
+// ---------- helpers ----------
+function money(n) { return 'Rs. ' + Math.round(n).toLocaleString('en-LK'); }
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ---------- deadlines ----------
+const MONTHLY = [
+  { name: 'APIT / PAYE payment', day: 15, desc: 'Tax deducted from employee salaries — pay to IRD by the 15th of the following month' },
+  { name: 'VAT payment', day: 20, desc: 'VAT for the previous month — pay by the 20th (if VAT registered)' },
+  { name: 'VAT return filing', day: 'last', desc: 'Monthly VAT return due by end of the following month' },
+  { name: 'EPF & ETF contributions', day: 'last', desc: 'Employee provident fund payments due by end of the following month' },
+];
+
+// annual deadlines: [month(1-12), day, name, desc]
+const ANNUAL = [
+  [8, 15, '1st income tax installment', 'Self-assessment installment for current year of assessment'],
+  [11, 15, '2nd income tax installment', 'Self-assessment installment'],
+  [11, 30, 'Annual income tax return', 'Return of income for the previous year of assessment (Y/A ended 31 March)'],
+  [2, 15, '3rd income tax installment', 'Self-assessment installment'],
+  [5, 15, '4th (final) income tax installment', 'Final self-assessment installment'],
+  [9, 30, 'Final tax payment', 'Balance tax payment for previous year of assessment'],
+];
+
+function nextOccurrence(month, day) {
+  const now = new Date();
+  let d = new Date(now.getFullYear(), month - 1, day, 23, 59);
+  if (d < now) d = new Date(now.getFullYear() + 1, month - 1, day, 23, 59);
+  return d;
+}
+function monthlyNext(day) {
+  const now = new Date();
+  let d;
+  if (day === 'last') {
+    d = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59); // last day of this month
+    if (d < now) d = new Date(now.getFullYear(), now.getMonth() + 2, 0, 23, 59);
+  } else {
+    d = new Date(now.getFullYear(), now.getMonth(), day, 23, 59);
+    if (d < now) d = new Date(now.getFullYear(), now.getMonth() + 1, day, 23, 59);
+  }
+  return d;
+}
+function daysTo(d) {
+  return Math.max(0, Math.ceil((d - new Date()) / 86400000));
+}
+function pill(days) {
+  if (days <= 7) return '<span class="pill soon">' + days + ' days</span>';
+  if (days <= 30) return '<span class="pill upcoming">' + days + ' days</span>';
+  return '<span class="pill later">' + days + ' days</span>';
+}
+function dstr(d) {
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderDeadlines() {
+  const all = [];
+  MONTHLY.forEach(m => {
+    const d = monthlyNext(m.day);
+    all.push({ name: m.name, desc: m.desc, date: d, days: daysTo(d), monthly: true });
+  });
+  ANNUAL.forEach(([mo, day, name, desc]) => {
+    const d = nextOccurrence(mo, day);
+    all.push({ name, desc, date: d, days: daysTo(d), monthly: false });
+  });
+  all.sort((a, b) => a.date - b.date);
+
+  const row = x => `
+    <div class="deadline">
+      <div>
+        <div class="name">${x.name}</div>
+        <div class="desc">${x.desc} — <b>${dstr(x.date)}</b></div>
+      </div>
+      ${pill(x.days)}
+    </div>`;
+
+  document.getElementById('monthlyList').innerHTML = all.filter(x => x.monthly).map(row).join('');
+  document.getElementById('annualList').innerHTML = all.filter(x => !x.monthly).map(row).join('');
+
+  const urgent = all.filter(x => x.days <= 30);
+  document.getElementById('urgentList').innerHTML =
+    urgent.length ? urgent.map(row).join('') : '<p class="note">Nothing due in the next 30 days 🎉</p>';
+
+  const next = all[0];
+  document.getElementById('statDays').textContent = next.days;
+  document.getElementById('statNext').textContent = next.name;
+}
+
+// ---------- VAT ----------
+const VAT_RATE = 0.18;
+document.getElementById('vatMode').addEventListener('change', function () {
+  const net = this.value === 'net';
+  document.getElementById('vatSimple').style.display = net ? 'none' : 'block';
+  document.getElementById('vatNet').style.display = net ? 'block' : 'none';
+});
+
+function calcVAT() {
+  const mode = document.getElementById('vatMode').value;
+  const box = document.getElementById('vatResult');
+  let html = '';
+  if (mode === 'add') {
+    const a = +document.getElementById('vatAmount').value;
+    if (!a) { alert('Enter an amount'); return; }
+    const vat = a * VAT_RATE;
+    html = `<div class="big">${money(a + vat)}</div>
+      <table>
+        <tr><td>Price before VAT</td><td>${money(a)}</td></tr>
+        <tr><td>VAT (18%)</td><td>${money(vat)}</td></tr>
+        <tr><td><b>Total with VAT</b></td><td><b>${money(a + vat)}</b></td></tr>
+      </table>`;
+  } else if (mode === 'extract') {
+    const a = +document.getElementById('vatAmount').value;
+    if (!a) { alert('Enter an amount'); return; }
+    const base = a / (1 + VAT_RATE);
+    const vat = a - base;
+    html = `<div class="big">VAT inside: ${money(vat)}</div>
+      <table>
+        <tr><td>Total (VAT inclusive)</td><td>${money(a)}</td></tr>
+        <tr><td>Price before VAT</td><td>${money(base)}</td></tr>
+        <tr><td>VAT portion (18%)</td><td>${money(vat)}</td></tr>
+      </table>`;
+  } else {
+    const s = +document.getElementById('vatSales').value;
+    const p = +document.getElementById('vatPurchases').value || 0;
+    if (!s) { alert('Enter your sales'); return; }
+    const out = s * VAT_RATE, inp = p * VAT_RATE, net = out - inp;
+    html = `<div class="big" style="color:${net >= 0 ? 'var(--accent)' : 'var(--accent2)'}">
+        ${net >= 0 ? 'VAT payable: ' + money(net) : 'VAT credit: ' + money(-net)}</div>
+      <table>
+        <tr><td>Output VAT (on sales)</td><td>${money(out)}</td></tr>
+        <tr><td>Input VAT (on purchases)</td><td>${money(inp)}</td></tr>
+        <tr><td><b>Net VAT ${net >= 0 ? 'payable to IRD' : 'carried forward'}</b></td><td><b>${money(Math.abs(net))}</b></td></tr>
+      </table>
+      <p class="note">Pay by the 20th of next month to avoid penalties.</p>`;
+  }
+  box.innerHTML = html;
+  box.classList.add('show');
+}
+
+// ---------- Income tax FY 2025/26 ----------
+// Bands: 0% first 1.8M | 6% next 1.0M | 18% next 0.5M | 24% next 0.5M | 30% next 0.5M | 36% balance
+const BANDS = [
+  { upTo: 1800000, rate: 0.00, label: 'First Rs. 1,800,000 (relief)' },
+  { upTo: 2800000, rate: 0.06, label: 'Next Rs. 1,000,000 @ 6%' },
+  { upTo: 3300000, rate: 0.18, label: 'Next Rs. 500,000 @ 18%' },
+  { upTo: 3800000, rate: 0.24, label: 'Next Rs. 500,000 @ 24%' },
+  { upTo: 4300000, rate: 0.30, label: 'Next Rs. 500,000 @ 30%' },
+  { upTo: Infinity, rate: 0.36, label: 'Balance @ 36%' },
+];
+
+function syncMonthly() {
+  const m = +document.getElementById('incMonthly').value;
+  if (m) document.getElementById('incAnnual').value = m * 12;
+}
+
+function calcIncome() {
+  const income = +document.getElementById('incAnnual').value;
+  if (!income) { alert('Enter your income'); return; }
+  let tax = 0, prev = 0, rows = '';
+  for (const b of BANDS) {
+    if (income <= prev) break;
+    const slice = Math.min(income, b.upTo) - prev;
+    const t = slice * b.rate;
+    tax += t;
+    if (slice > 0) rows += `<tr><td>${b.label}</td><td>${money(t)}</td></tr>`;
+    prev = b.upTo;
+  }
+  const eff = (tax / income * 100).toFixed(1);
+  const box = document.getElementById('incResult');
+  box.innerHTML = `
+    <div class="big">${money(tax)} / year</div>
+    <p style="color:var(--muted); font-size:0.85rem; margin-top:4px;">
+      ≈ ${money(tax / 12)} per month &nbsp;•&nbsp; effective rate ${eff}% &nbsp;•&nbsp; take-home ${money(income - tax)}/year
+    </p>
+    <table>${rows}</table>`;
+  box.classList.add('show');
+}
+
+renderDeadlines();
+</script>
+</body>
+</html>
